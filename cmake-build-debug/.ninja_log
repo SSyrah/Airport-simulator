@@ -1,0 +1,11 @@
+# ninja log v5
+136	2085	6692039648370182	CMakeFiles/Airport.dir/Utility.cpp.obj	e6ec2bf89d4c8aa1
+54	2026	6692039647718129	CMakeFiles/Airport.dir/Airport.cpp.obj	d06f65cb9e5dbfc0
+62	2188	6691450866429414	CMakeFiles/Airport.dir/Plane.cpp.obj	3d342f6b851f441d
+25	1864	6692039645724615	CMakeFiles/Airport.dir/main.cpp.obj	5688ae1eb29f2bdf
+0	32	0	clean	b72c21c3e92959a
+184	1987	6692039646693228	CMakeFiles/Airport.dir/queue.cpp.obj	a9a38529db362b19
+50	2138	6691450866159392	CMakeFiles/Airport.dir/Functions.cpp.obj	a60e9aff34de06d
+91	1950	6692039646623139	CMakeFiles/Airport.dir/extended_queue.cpp.obj	5225d7f68ef8c5da
+59	2022	6692039647095444	CMakeFiles/Airport.dir/RANDOM.CPP.obj	7e1eb24a9055fb2d
+2085	2785	6692039655352651	Airport.exe	cb8b8c190082ae1d
