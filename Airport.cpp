@@ -18,17 +18,17 @@ Uses: utility function user_says_yes
    cout << "This program simulates an airport with only one runway." << endl
         << "One plane can land or depart in each unit of time." << endl;
    cout << "Up to what number of planes can be waiting to land "
-        << "or take off at any time? " << flush;
+        << "or take off at any time?:  " << flush;
    cin  >> queue_limit;
 
-   cout << "How many units of time will the simulation run?" << flush;
+   cout << "How many units of time will the simulation run?:  " << flush;
    cin  >> end_time;
 
    bool acceptable;
    do {
-      cout << "Expected number of arrivals per unit time?" << flush;
+      cout << "Expected number of arrivals per unit time?:  " << flush;
       cin  >> arrival_rate;
-      cout << "Expected number of departures per unit time?" << flush;
+      cout << "Expected number of departures per unit time?:  " << flush;
       cin  >> departure_rate;
       if (arrival_rate < 0.0 || departure_rate < 0.0)
          cerr << "These rates must be nonnegative." << endl;
@@ -194,6 +194,36 @@ Post: Runway usage statistics are summarized and printed.
    cout << "Average observed rate of planes wanting to take off "
         << (( float ) num_takeoff_requests) / (( float ) time)
         << " per time unit" << endl;
+}
+
+bool Runway::is_takeoff_empty(){
+   if (takeoff.empty())
+   return true;
+   return false;
+}
+
+bool Runway::is_landing_empty(){
+   if (landing.empty())
+   return true;
+   return false;
+}
+
+bool Runway::is_takeoff_full(){
+   return takeoff.full();
+}
+
+bool Runway::is_landing_full(){
+   return landing.full();
+}
+
+void Runway::add_landing(int time, Plane &moving){
+   land_wait += time - moving.started();
+   num_landings++;
+}
+
+void Runway::add_takeoff(int time, Plane &moving){
+   land_wait += time - moving.started();
+   num_takeoffs++;
 }
 
 
