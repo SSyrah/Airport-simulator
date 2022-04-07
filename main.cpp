@@ -5,7 +5,7 @@ int main()
 {
     int option{};
 
-    std::cout << "Choose version 1-5:  ";
+    std::cout << "Choose Airport version 1-5:  ";
     std::cin >> option;
 
     switch (option)
@@ -16,17 +16,14 @@ int main()
     case 2:
         main_2();
         break;
-
     case 3:
         main_3();
         break;
-
     case 4:
-        std::cout << "Placeholder 4\n";
+        main_4();
         break;
-
     case 5:
-        std::cout << "Placeholder 5\n";
+        main_5();
         break;
     default:
         std::cout << "Wrong option, try again.\n";

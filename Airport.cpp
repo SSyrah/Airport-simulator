@@ -1,6 +1,13 @@
 #include "Header.h"
+#include "RANDOM.H"
 
 // Functions first:
+bool Runway::check_fuel_rate(Plane &current, int fuel_rate)
+{
+   if (current.get_fuel() < fuel_rate)
+      return false;
+   return true;
+}
 
 void initialize(int &end_time, int &queue_limit,
                 double &arrival_rate, double &departure_rate)
@@ -19,17 +26,18 @@ Uses: utility function user_says_yes
         << "One plane can land or depart in each unit of time." << endl;
    cout << "Up to what number of planes can be waiting to land "
         << "or take off at any time?:  " << flush;
-   cin  >> queue_limit;
+   cin >> queue_limit;
 
    cout << "How many units of time will the simulation run?:  " << flush;
-   cin  >> end_time;
+   cin >> end_time;
 
    bool acceptable;
-   do {
+   do
+   {
       cout << "Expected number of arrivals per unit time?:  " << flush;
-      cin  >> arrival_rate;
+      cin >> arrival_rate;
       cout << "Expected number of departures per unit time?:  " << flush;
-      cin  >> departure_rate;
+      cin >> departure_rate;
       if (arrival_rate < 0.0 || departure_rate < 0.0)
          cerr << "These rates must be nonnegative." << endl;
       else
@@ -48,8 +56,6 @@ Post: The specified time is printed with a message that the runway is idle.
 {
    cout << time << ": Runway is idle." << endl;
 }
-
-
 
 // Class Runway Methods:
 //--------------------------------------------
@@ -129,23 +135,67 @@ Uses:  class Extended_queue.
 
 {
    Runway_activity in_progress;
-   if (!landing.empty()) {
+   if (!landing.empty())
+   {
       landing.retrieve(moving);
       land_wait += time - moving.started();
+      if (moving.get_fuel() < 1)
+      {
+         num_dropped++;
+         in_progress = drop;
+      }
       num_landings++;
       in_progress = land;
       landing.serve();
    }
-
-   else if (!takeoff.empty()) {
+   else if (!takeoff.empty())
+   {
       takeoff.retrieve(moving);
       takeoff_wait += time - moving.started();
       num_takeoffs++;
       in_progress = take_off;
       takeoff.serve();
    }
+   else
+   {
+      idle_time++;
+      in_progress = idle;
+   }
+   return in_progress;
+}
 
-   else {
+Runway_activity Runway::activity2(int time, Plane &moving)
+/*
+Post:  If the landing Queue has entries, its front
+       Plane is copied to the parameter moving
+       and a result  land is returned. Otherwise,
+       if the takeoff Queue has entries, its front
+       Plane is copied to the parameter moving
+       and a result  takeoff is returned. Otherwise,
+       idle is returned. Runway statistics are updated.
+Uses:  class Extended_queue.
+*/
+
+{
+   Runway_activity in_progress;
+   if (!landing.empty())
+   {
+      landing.retrieve(moving);
+      land_wait += time - moving.started();
+      num_landings++;
+      in_progress = land;
+      landing.serve();
+   }
+   if (!takeoff.empty())
+   {
+      takeoff.retrieve(moving);
+      takeoff_wait += time - moving.started();
+      num_takeoffs++;
+      in_progress = take_off;
+      takeoff.serve();
+   }
+   if (landing.empty() && takeoff.empty())
+   {
       idle_time++;
       in_progress = idle;
    }
@@ -182,52 +232,89 @@ Post: Runway usage statistics are summarized and printed.
         << "Total number of planes left in takeoff queue "
         << takeoff.size() << endl;
    cout << "Percentage of time runway idle "
-        << 100.0 * (( float ) idle_time) / (( float ) time) << "%" << endl;
+        << 100.0 * ((float)idle_time) / ((float)time) << "%" << endl;
    cout << "Average wait in landing queue "
-        << (( float ) land_wait) / (( float ) num_landings) << " time units";
-   cout << endl << "Average wait in takeoff queue "
-        << (( float ) takeoff_wait) / (( float ) num_takeoffs)
+        << ((float)land_wait) / ((float)num_landings) << " time units";
+   cout << endl
+        << "Average wait in takeoff queue "
+        << ((float)takeoff_wait) / ((float)num_takeoffs)
         << " time units" << endl;
    cout << "Average observed rate of planes wanting to land "
-        << (( float ) num_land_requests) / (( float ) time)
+        << ((float)num_land_requests) / ((float)time)
         << " per time unit" << endl;
    cout << "Average observed rate of planes wanting to take off "
-        << (( float ) num_takeoff_requests) / (( float ) time)
+        << ((float)num_takeoff_requests) / ((float)time)
         << " per time unit" << endl;
 }
 
-bool Runway::is_takeoff_empty(){
+void Runway::short_shut_down(int time) const
+{
+   cout << "Simulation has concluded after " << time << " time units." << endl
+        << "Total number of planes processed "
+        << (num_land_requests + num_takeoff_requests) << endl
+        << "Total number of planes that landed "
+        << num_landings << endl
+        << "Total number of planes that took off "
+        << num_takeoffs << endl
+        << "Total number of planes left in landing queue "
+        << landing.size() << endl
+        << "Total number of planes left in takeoff queue "
+        << takeoff.size() << endl
+        << "Total planes dropped "
+        << num_dropped << endl;
+}
+int Runway::get_landing_size() const
+{
+   return landing.size();
+}
+
+int Runway::get_takeoff_size() const
+{
+   return takeoff.size();
+}
+
+bool Runway::is_takeoff_empty()
+{
    if (takeoff.empty())
-   return true;
+      return true;
    return false;
 }
 
-bool Runway::is_landing_empty(){
+bool Runway::is_landing_empty()
+{
    if (landing.empty())
-   return true;
+      return true;
    return false;
 }
 
-bool Runway::is_takeoff_full(){
+bool Runway::is_takeoff_full()
+{
    return takeoff.full();
 }
 
-bool Runway::is_landing_full(){
+bool Runway::is_landing_full()
+{
    return landing.full();
 }
 
-void Runway::add_landing(int time, Plane &moving){
-   land_wait += time - moving.started();
+void Runway::add_landing()
+{
+   num_land_requests++;
    num_landings++;
 }
 
-void Runway::add_takeoff(int time, Plane &moving){
-   land_wait += time - moving.started();
+void Runway::add_takeoff()
+{
+   num_takeoff_requests++;
    num_takeoffs++;
 }
 
+void Runway::add_drop()
+{
+   num_dropped++;
+}
 
-//Class Plane Methods:
+// Class Plane Methods:
 //--------------------------------------------
 
 Plane::Plane(int flt, int time, Plane_status status)
@@ -248,7 +335,6 @@ Post:  The Plane data members flt_num, clock_start,
       cout << "take off." << endl;
 }
 
-
 Plane::Plane()
 /*
 Post:  The Plane data members flt_num, clock_start,
@@ -259,7 +345,6 @@ Post:  The Plane data members flt_num, clock_start,
    clock_start = -1;
    state = null;
 }
-
 
 void Plane::refuse() const
 /*
@@ -275,7 +360,6 @@ Post: Processes a Plane wanting to use Runway, when
       cout << " told to try to takeoff again later" << endl;
 }
 
-
 void Plane::land(int time) const
 /*
 Post: Processes a Plane that is landing at the specified time.
@@ -287,7 +371,6 @@ Post: Processes a Plane that is landing at the specified time.
         << wait << " time unit" << ((wait == 1) ? "" : "s")
         << " in the takeoff queue." << endl;
 }
-
 
 void Plane::fly(int time) const
 /*
@@ -301,11 +384,34 @@ Post: Process a Plane that is taking off at the specified time.
         << " in the takeoff queue." << endl;
 }
 
-
 int Plane::started() const
 /*
 Post: Return the time that the Plane entered the airport system.
 */
 {
    return clock_start;
+}
+
+void Plane::random_fuel()
+{
+   Random variable;
+   fuel = variable.poisson(6);
+}
+
+void Plane::decrease_fuel()
+{
+   fuel--;
+}
+
+int Plane::get_fuel() const
+{
+   return fuel;
+}
+
+void Plane::drop(int time) const
+{
+   int wait = time - clock_start;
+   cout << time << ": Plane number " << flt_num << " dropped after "
+        << wait << " time unit" << ((wait == 1) ? "" : "s")
+        << " in the takeoff queue." << endl;
 }

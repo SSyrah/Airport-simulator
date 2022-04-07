@@ -29,44 +29,47 @@ Uses: Classes Runway, Plane, Random and functions run_idle, initialize.
       for (int i = 0; i < number_arrivals; i++)
       {
          Plane current_plane(flight_number++, current_time, arriving);
+         if (small_airport_takeoff.is_takeoff_empty())
+         {
+            small_airport_takeoff.can_land(current_plane);
+            small_airport_takeoff.activity(current_time, current_plane);
+         }
+            
          if (small_airport_landing.can_land(current_plane) != success)
          {
-            if (small_airport_takeoff.is_takeoff_empty())
-               small_airport_landing.add_landing(current_time, current_plane);
-            else if (small_airport_landing.is_landing_full())
-            {
-               operand = false;
-               small_airport_landing.add_landing(current_time, current_plane);
-            }
-            else
-               current_plane.refuse();
+            operand = false;
+            current_plane.refuse();
          }
          else
+         {
             operand = true;
+         }
       }
 
       int number_departures = variable.poisson(departure_rate); //  current departure requests
       for (int j = 0; j < number_departures; j++)
       {
          Plane current_plane(flight_number++, current_time, departing);
+         if (small_airport_landing.is_landing_empty())
+         {
+            small_airport_landing.can_land(current_plane);
+            small_airport_landing.activity(current_time,current_plane);
+         }
          if (small_airport_takeoff.can_depart(current_plane) != success)
          {
-            if (small_airport_landing.is_landing_empty())
-               small_airport_takeoff.add_takeoff(current_time, current_plane);
-            else
-               current_plane.refuse();
+            current_plane.refuse();
          }
       }
 
       Plane moving_plane;
       if (operand)
       {
-         switch (small_airport_takeoff.activity(current_time, moving_plane))
+         switch (small_airport_takeoff.activity2(current_time, moving_plane))
          {
             //  Let at most one Plane onto the Runway at current_time.
-         /*case land:
+         case land:
             moving_plane.land(current_time);
-            break;*/
+            break;
          case take_off:
             moving_plane.fly(current_time);
             break;
@@ -74,15 +77,16 @@ Uses: Classes Runway, Plane, Random and functions run_idle, initialize.
             run_idle(current_time);
          }
       }
-      switch (small_airport_landing.activity(current_time, moving_plane))
+      Plane moving_plane_2;
+      switch (small_airport_landing.activity2(current_time, moving_plane_2))
       {
          //  Let at most one Plane onto the Runway at current_time.
       case land:
          moving_plane.land(current_time);
          break;
-         /*   case take_off:
-               moving_plane.fly(current_time);
-               break;*/
+      case take_off:
+         moving_plane.fly(current_time);
+         break;
       case idle:
          run_idle(current_time);
       }

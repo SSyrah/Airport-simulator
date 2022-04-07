@@ -14,7 +14,7 @@ Uses: Classes Runway, Plane, Random and functions run_idle, initialize.
 */
 
 {
-   int end_time;            //  time to run simulation
+   int end_time;            //  time to run simulationf
    int queue_limit;         //  size of Runway queues
    int flight_number = 0;
    double arrival_rate, departure_rate;
